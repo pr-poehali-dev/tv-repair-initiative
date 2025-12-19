@@ -302,9 +302,10 @@ const Index = () => {
                     <Icon name="Send" size={20} className="mr-2" />
                     {isSubmitting ? 'Отправка...' : 'Отправить заявку'}
                   </Button>
-                <p className="text-xs text-muted-foreground text-center">
-                  Нажимая кнопку, вы соглашаетесь с политикой конфиденциальности
-                </p>
+                  <p className="text-xs text-muted-foreground text-center">
+                    Нажимая кнопку, вы соглашаетесь с политикой конфиденциальности
+                  </p>
+                </form>
               </CardContent>
             </Card>
             <div className="space-y-6">

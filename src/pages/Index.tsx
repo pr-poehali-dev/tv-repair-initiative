@@ -4,8 +4,56 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import Icon from "@/components/ui/icon";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 const Index = () => {
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    description: ''
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('https://functions.poehali.dev/72f71ec1-246c-44b3-ae8e-350081de7d45', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        toast({
+          title: "Заявка отправлена!",
+          description: data.message,
+        });
+        setFormData({ name: '', phone: '', description: '' });
+      } else {
+        toast({
+          title: "Ошибка",
+          description: data.error || 'Не удалось отправить заявку',
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Ошибка сети",
+        description: 'Проверьте подключение к интернету',
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   const services = [
     { name: "Диагностика", price: "Бесплатно", icon: "Search", description: "Полная диагностика неисправностей" },
     { name: "Замена матрицы", price: "от 3500₽", icon: "Monitor", description: "Оригинальные комплектующие" },
@@ -217,23 +265,43 @@ const Index = () => {
                 <CardTitle className="text-2xl">Оставьте заявку</CardTitle>
                 <CardDescription className="text-base">Мы перезвоним в течение 5 минут</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Ваше имя</label>
-                  <Input placeholder="Иван Иванов" />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Телефон</label>
-                  <Input placeholder="+7 (999) 123-45-67" />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Описание проблемы</label>
-                  <Textarea placeholder="Опишите что случилось с телевизором..." rows={4} />
-                </div>
-                <Button size="lg" className="w-full">
-                  <Icon name="Send" size={20} className="mr-2" />
-                  Отправить заявку
-                </Button>
+              <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Ваше имя</label>
+                    <Input 
+                      placeholder="Иван Иванов" 
+                      value={formData.name}
+                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      required
+                      minLength={2}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Телефон</label>
+                    <Input 
+                      placeholder="+7 (999) 123-45-67" 
+                      value={formData.phone}
+                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                      required
+                      minLength={10}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Описание проблемы</label>
+                    <Textarea 
+                      placeholder="Опишите что случилось с телевизором..." 
+                      rows={4}
+                      value={formData.description}
+                      onChange={(e) => setFormData({...formData, description: e.target.value})}
+                      required
+                      minLength={10}
+                    />
+                  </div>
+                  <Button size="lg" className="w-full" type="submit" disabled={isSubmitting}>
+                    <Icon name="Send" size={20} className="mr-2" />
+                    {isSubmitting ? 'Отправка...' : 'Отправить заявку'}
+                  </Button>
                 <p className="text-xs text-muted-foreground text-center">
                   Нажимая кнопку, вы соглашаетесь с политикой конфиденциальности
                 </p>
